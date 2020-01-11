@@ -42,6 +42,13 @@ curl -X GET -H "Content-Type: application/json" \
  ## Database preparation
  
  Import `setup/kernotransactions.sql` script to your MySQL server.
+ Connection parameters can be edited in `models/DBClass.php`:
+ ```
+private $host = 'localhost';
+private $username = 'root';
+private $password = '';
+private $database = 'kernotransactions';
+```
 
  ## Unit tests execution
  
