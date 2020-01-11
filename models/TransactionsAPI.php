@@ -39,7 +39,7 @@
         {
             $t = new Transaction();
             $rowsAffected = $t->confirmAll();
-            return new Response(self::HTTP_OK, ['message' => $rowsAffected . ' transactions confirmed']);
+            return new Response(self::HTTP_OK, ['message' => $rowsAffected . ' transaction(s) confirmed']);
         }
 
         public function get_getusertransactions($data): Response
