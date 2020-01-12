@@ -48,4 +48,17 @@
             ob_end_clean();
             $this->assertEquals($t->get_getusertransactions($data), $trueValue);
         }
+
+        /**
+         * @runInSeparateProcess
+         */
+        public function testGet_gettransaction()
+        {
+            $data = [];
+            ob_start();
+            $t = new TransactionsAPI();
+            $trueValue = new Response(500, ['message' => 'Transaction ID not defined']);
+            ob_end_clean();
+            $this->assertEquals($t->get_gettransaction($data), $trueValue);
+        }
     }

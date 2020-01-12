@@ -4,7 +4,7 @@
 
  ## Description
  This is a stateless API based on PHP 7 and MySQL which simulates money transfer operations using JSON data for requests and responses. On successful request the API returns HTTP response with code 200, on failure it returns code 500, and 404 - if requested endpoint is not found.
- It accepts four requests to manage transactions, here is the list of them with CLI cURL examples (presume the API is running on http://localhost:8080/kernolabapi/):
+ It accepts five requests to manage transactions, here is the list of them with CLI cURL examples (presume the API is running on http://localhost:8080/kernolabapi/):
  - `POST index.php?endpoint=inittransaction` initiates transaction:
 ```
 curl -X POST -H "Content-Type: application/json" \
@@ -16,7 +16,7 @@ curl -X POST -H "Content-Type: application/json" \
   \"currency\":\"eur\"}" \
  http://localhost:8080/kernolabapi/?endpoint=inittransaction
 ```
- - `PUT index.php?endpoint=submittransaction` submits the oldest unconfirmed transaction:
+ - `PUT index.php?endpoint=submittransaction` launches submit background process for the oldest unconfirmed transaction:
 ```
 curl -X PUT -H "Content-Type: application/json" \
  -d '{"code":"111"}' \
@@ -26,6 +26,12 @@ curl -X PUT -H "Content-Type: application/json" \
 ```
 curl -X PUT -H "Content-Type: application/json" \
  http://localhost:8080/kernolabapi/?endpoint=submitalltransactions
+```
+ - `GET index.php?endpoint=gettransaction` gets transaction by ID:
+```
+curl -X GET -H "Content-Type: application/json" \
+ -d '{"transaction_id":1}' \
+ http://localhost:8080/kernolabapi/?endpoint=gettransaction
 ```
  - `GET index.php?endpoint=getusertransactions` pulls all user transactions in descending order of date created:
 ```

@@ -15,7 +15,7 @@
             string $details,
             string $receiverAccount,
             string $receiverName,
-            $amount,
+            float $amount,
             string $currency
         ) {
             $fee = $this->calculateFee($amount, $userId);
@@ -46,11 +46,16 @@
                 ':provider' => $provider
             ];
             $id = $this->dbInsert($sql, $bindArr);
-            return $id === '0' ? 'Failed to create transaction' : $this->get($id);
+            return $id === '0' ? 'Failed to create transaction' : $this->getTransaction(intval($id));
+        }
+
+        public function launchConfirmTask(string $code)
+        {
+            exec('php "' . __DIR__ . '\..\scripts\confirmTransaction.php" ' . $code);
         }
 
         /**
-         * Confirms the oldest unconfirmed transaction (since API does not identify transactions by ID)
+         * Confirms the oldest unconfirmed transaction (since the only parameter is confirmation code)
          * @param string $code
          * @return int
          */
@@ -71,6 +76,20 @@
         {
             $sql = "UPDATE transactions SET status = '" . self::STATUS_COMPLETED . "' WHERE status != '" . self::STATUS_COMPLETED . "'";
             return $this->dbUpdate($sql, []);
+        }
+
+        public function getTransaction(int $id)
+        {
+            $sql = '
+                  SELECT id transaction_id, details, receiver_account, receiver_name, amount, currency, fee, status
+                    FROM transactions
+                   WHERE id = :id';
+            $bindArr = [':id' => $id];
+            $result = $this->dbSelect($sql, $bindArr);
+            if (isset($result[0])) {
+                return $result[0];
+            }
+            return 'Transaction not found';
         }
 
         public function getUserTransactions(int $userId): array
@@ -96,7 +115,7 @@
             return $provider;
         }
 
-        private function calculateFee($amount, int $userId): float
+        private function calculateFee(float $amount, int $userId): float
         {
             $todayTransactionsAmount = $this->getUserTodayTransactionsSum($userId);
             if ($todayTransactionsAmount > self::AMOUNT_FOR_FIVE_PERCENT_FEE) {
@@ -104,7 +123,7 @@
             } else {
                 $feeSize = 0.1;
             }
-            return round(floatval($amount) * $feeSize, 2);
+            return round($amount * $feeSize, 2);
         }
 
         private function generateConfirmationCode(): string
@@ -117,7 +136,8 @@
             $sql = 'SELECT (IFNULL(SUM(amount), 0) + IFNULL(SUM(fee), 0)) total FROM transactions WHERE user_id = :user_id AND currency = :currency';
             $bindArr = [':user_id' => $userId, ':currency' => $currency];
             $result = $this->dbSelect($sql, $bindArr);
-            if ($row = $result[0]) {
+            if (isset($result[0])) {
+                $row = $result[0];
                 return floatval($row['total']);
             }
             return 0;
@@ -128,7 +148,8 @@
             $sql = 'SELECT IFNULL(SUM(amount), 0) s FROM transactions WHERE user_id = :user_id AND date_created > CURDATE()';
             $bindArr = [':user_id' => $userId];
             $result = $this->dbSelect($sql, $bindArr);
-            if ($row = $result[0]) {
+            if (isset($result[0])) {
+                $row = $result[0];
                 return floatval($row['s']);
             }
             return 0;
@@ -139,23 +160,10 @@
             $sql = 'SELECT COUNT(*) ct FROM transactions WHERE user_id = :user_id AND date_created > DATE_SUB(NOW(), INTERVAL 1 HOUR)';
             $bindArr = [':user_id' => $userId];
             $result = $this->dbSelect($sql, $bindArr);
-            if ($row = $result[0]) {
+            if (isset($result[0])) {
+                $row = $result[0];
                 return intval($row['ct']);
             }
             return 0;
-        }
-
-        private function get($id)
-        {
-            $sql = '
-                  SELECT id transaction_id, details, receiver_account, receiver_name, amount, currency, fee, status
-                    FROM transactions
-                   WHERE id = :id';
-            $bindArr = [':id' => $id];
-            $result = $this->dbSelect($sql, $bindArr);
-            if ($transaction = $result[0]) {
-                return $transaction;
-            }
-            return 'Transaction not found';
         }
     }
