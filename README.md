@@ -45,6 +45,8 @@ curl -X GET -H "Content-Type: application/json" \
  -	PHP 7+
  -	MySQL
  
+ Note: if you have several PHP versions on your machine be sure that 7+ version is put into your `$PATH`. It is needed for background process and unit tests execution.
+ 
  ## Database preparation
  
  Import `setup/kernotransactions.sql` script to your MySQL server.
@@ -62,5 +64,4 @@ private $database = 'kernotransactions';
  ```
  php ./phpunit.phar --bootstrap ./autoload.php ./tests/
  ```
- Note: if you have several PHP versions on your machine be sure that 7+ version is put into your `$PATH`.
  
